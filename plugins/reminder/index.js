@@ -8,7 +8,7 @@ module.exports = Command.extend({
                 +'the given date.'
   , init: function(bot) {
     this.readReminders()
-    this.intervalTime = 1000 * 5 // TODO fix interval
+    this.intervalTime = 1000 * 60
     this.bot = bot
 
     var self = this
@@ -16,15 +16,16 @@ module.exports = Command.extend({
     this.interval = setInterval(function() {
       var now = new Date
 
-      console.log(this)
-      self._notes.forEach(function(note, index, all) {
-        if (now > new Date(note.date)) {
-          console.log('in interval')
-          self.bot.notice(note.from, note.text)
-          delete self._notes.note
-          // TODO fix this
-        }
+      self._notes.filter(function(note, index, all) {
+          return now > new Date(note.date)
       })
+      .forEach(function(note, index, all) {
+          self.bot.notice(note.from, 'Reminder (on ' + note.date + '): ' + note.text)
+      })
+      self._notes = self._notes.filter(function(note, index, all) {
+        return new Date(note.date) > now
+      })
+      self.saveReminder()
     }, this.intervalTime)
   }
   , cleanup: function(bot) {
